@@ -13,6 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from seleniumbase import Driver
 from tqdm import tqdm
 
 from configs import KEYWORDS, LANGUAGES, PATHS, REGEX_LIST
@@ -57,19 +58,18 @@ class APIKeyLeakageScanner:
         """
         Login to GitHub
         """
-        rich.print("🌍 Opening Chrome ...")
+        rich.print("🌍 Opening Chrome (SeleniumBase UC mode) ...")
 
-        options = webdriver.ChromeOptions()
-        options.add_argument("--ignore-certificate-errors")
-        options.add_argument("--ignore-ssl-errors")
-
-        self.driver = webdriver.Chrome(options=options)
+        self.driver = Driver(
+            uc=True,
+            chromium_arg="--ignore-certificate-errors,--ignore-ssl-errors",
+        )
         self.driver.implicitly_wait(3)
 
         self.cookies = CookieManager(self.driver)
 
         cookie_exists = os.path.exists("cookies.pkl")
-        self.driver.get("https://github.com/login")
+        self.driver.uc_open_with_reconnect("https://github.com/login", reconnect_time=3)
 
         if not cookie_exists:
             rich.print("🤗 No cookies found, please login to GitHub first")
